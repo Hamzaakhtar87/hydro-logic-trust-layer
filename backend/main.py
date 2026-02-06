@@ -3,6 +3,7 @@ Hydro-Logic Trust Layer - FastAPI Application
 Production-ready with authentication and database
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -13,11 +14,21 @@ import os
 from backend.api.routes import auth_router, shield_router, finops_router, compliance_router
 from backend.database import init_database
 
-# Initialize database on startup
-init_database()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize resources on startup and cleanup on shutdown."""
+    # Startup: Initialize database
+    init_database()
+    print("✅ Database initialized")
+    yield
+    # Shutdown: Cleanup if needed
+    print("👋 Shutting down Hydro-Logic Trust Layer")
+
 
 # App configuration
 app = FastAPI(
+    lifespan=lifespan,
     title="Hydro-Logic Trust Layer",
     description="HTTPS for AI Agents - Security, Cost Optimization & Compliance",
     version="1.0.0",
