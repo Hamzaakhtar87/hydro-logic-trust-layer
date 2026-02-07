@@ -23,8 +23,18 @@ export const clearTokens = () => {
     localStorage.removeItem('refresh_token');
 };
 
-export const getAccessToken = () => accessToken;
-export const isAuthenticated = () => !!accessToken;
+export const getAccessToken = () => {
+    // Always get fresh token from localStorage
+    accessToken = localStorage.getItem('access_token');
+    return accessToken;
+};
+
+export const isAuthenticated = () => {
+    // Always check localStorage for fresh state
+    const token = localStorage.getItem('access_token');
+    accessToken = token; // Sync in-memory
+    return !!token;
+};
 
 // API request helper with auth
 async function apiRequest<T>(
@@ -37,8 +47,10 @@ async function apiRequest<T>(
         ...options.headers,
     };
 
-    if (requireAuth && accessToken) {
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
+    // Always get fresh token from localStorage
+    const currentToken = localStorage.getItem('access_token');
+    if (requireAuth && currentToken) {
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${currentToken}`;
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, {
