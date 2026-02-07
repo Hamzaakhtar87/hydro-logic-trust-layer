@@ -73,26 +73,42 @@ echo -e "${YELLOW}[4/6]${NC} Configuring Nginx..."
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cat > /etc/nginx/sites-available/${APP_NAME} << EOF
+cat > /etc/nginx/sites-available/${APP_NAME} << 'NGINXEOF'
 server {
     listen 80;
-    server_name ${PUBLIC_IP};
+    server_name 51.21.128.226;
 
-    # Frontend
-    location / {
-        root ${SCRIPT_DIR}/frontend/dist;
+    # Landing page - proxy to backend
+    location = / {
+        proxy_pass http://127.0.0.1:8000/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # React App - serve from dist folder
+    location /app {
+        alias SCRIPT_DIR_PLACEHOLDER/frontend/dist;
         index index.html;
-        try_files \$uri \$uri/ /index.html;
+        try_files $uri $uri/ /app/index.html;
+    }
+
+    # Static assets for React app
+    location /assets {
+        alias SCRIPT_DIR_PLACEHOLDER/frontend/dist/assets;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
     }
 
     # Backend API
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 
@@ -100,7 +116,7 @@ server {
     location /ws/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 86400;
     }
@@ -114,8 +130,19 @@ server {
     location /docs {
         proxy_pass http://127.0.0.1:8000/docs;
     }
+    
+    location /redoc {
+        proxy_pass http://127.0.0.1:8000/redoc;
+    }
+
+    location /openapi.json {
+        proxy_pass http://127.0.0.1:8000/openapi.json;
+    }
 }
-EOF
+NGINXEOF
+
+# Replace placeholder with actual path
+sed -i "s|SCRIPT_DIR_PLACEHOLDER|${SCRIPT_DIR}|g" /etc/nginx/sites-available/${APP_NAME}
 
 # Enable site
 ln -sf /etc/nginx/sites-available/${APP_NAME} /etc/nginx/sites-enabled/
