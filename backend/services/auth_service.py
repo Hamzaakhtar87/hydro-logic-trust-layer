@@ -7,7 +7,6 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional
 import hashlib
-import secrets
 
 from jose import JWTError, jwt
 import bcrypt
@@ -16,7 +15,14 @@ from sqlalchemy.orm import Session
 from backend.database.models import User, APIKey
 
 # Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+# IMPORTANT: JWT_SECRET_KEY must be consistent across all workers!
+# If not set in environment, use a stable default (change in production!)
+_default_secret = "hydro-logic-dev-secret-key-change-in-production-12345"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", _default_secret)
+if SECRET_KEY == _default_secret:
+    import warnings
+    warnings.warn("Using default JWT secret key! Set JWT_SECRET_KEY in .env for production.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 REFRESH_TOKEN_EXPIRE_DAYS = 30
