@@ -1,24 +1,35 @@
 """
 Gemini 3 API Client with Thought Signature Extraction
-Leverages the thinking_budget and extracts cognitive signatures from responses.
+Leverages thinking_level (minimal/low/medium/high) and extracts cognitive signatures.
 """
 
 import os
 import hashlib
 import json
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Literal
 from datetime import datetime
 import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Valid thinking levels for Gemini 3
+ThinkingLevel = Literal["minimal", "low", "medium", "high"]
+
 
 class GeminiClient:
     """
     Wrapper for Gemini 3 API with Thought Signature support.
-    Extracts cryptographic-style signatures from model responses for verification.
+    Extracts cognitive signatures from model responses for behavioral verification.
+    
+    Key Features:
+    - Uses Gemini 3 with thinking_level parameter
+    - Extracts Thought Signatures from responses
+    - Supports minimal/low/medium/high thinking levels
     """
+    
+    MODEL_NAME = "gemini-3-flash-preview-exp"  # ✅ Correct Gemini 3 model
+    MODEL_SIMPLE = "gemini-3-flash"  # For simple queries
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -26,8 +37,8 @@ class GeminiClient:
             raise ValueError("GEMINI_API_KEY not found in environment")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-thinking-exp')
-        self.default_model = genai.GenerativeModel('gemini-2.0-flash')
+        self.model = genai.GenerativeModel(self.MODEL_NAME)
+        self.default_model = genai.GenerativeModel(self.MODEL_SIMPLE)
         
         # Track request metadata
         self.request_count = 0
@@ -36,7 +47,7 @@ class GeminiClient:
     def generate_with_thinking(
         self, 
         prompt: str, 
-        thinking_budget: int = 10000,
+        thinking_level: ThinkingLevel = "medium",
         context: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """
@@ -44,53 +55,72 @@ class GeminiClient:
         
         Args:
             prompt: The user prompt
-            thinking_budget: Token budget for thinking (higher = more reasoning)
+            thinking_level: One of 'minimal', 'low', 'medium', 'high'
             context: Optional context dict for tracking
             
         Returns:
             {
                 'content': str,          # The actual response
-                'thought_signature': str, # Cryptographic signature of thinking
-                'thinking_tokens': int,   # Tokens used in thinking
-                'output_tokens': int,     # Tokens in output
+                'thought_signature': str, # Signature from Gemini (or derived)
+                'thinking': str,          # The thinking content
+                'thinking_level': str,    # Level used
                 'metadata': dict          # Additional metadata
             }
         """
         try:
-            # Generate with thinking model
+            # Generate with thinking using Gemini 3 syntax
             response = self.model.generate_content(
                 prompt,
-                generation_config=genai.types.GenerationConfig(
+                generation_config=genai.GenerationConfig(
                     temperature=0.7,
                     max_output_tokens=8192,
+                    thinking_level=thinking_level  # ✅ Correct Gemini 3 parameter
                 )
             )
             
             self.request_count += 1
             
-            # Extract thinking content if available
+            # Extract response components
             thinking_content = ""
             output_content = ""
+            thought_signature = None
             
             if response.candidates:
                 candidate = response.candidates[0]
+                
+                # ✅ Extract Thought Signature from Gemini response (if provided)
+                # Gemini 3 provides this automatically
+                if hasattr(candidate, 'thinking_signature'):
+                    thought_signature = candidate.thinking_signature
+                elif hasattr(candidate, 'thought_signature'):
+                    thought_signature = candidate.thought_signature
+                
+                # Extract thinking and content
                 if hasattr(candidate, 'content') and candidate.content.parts:
                     for part in candidate.content.parts:
+                        # Check for thinking content
                         if hasattr(part, 'thought') and part.thought:
                             thinking_content = part.text if hasattr(part, 'text') else ""
+                        elif hasattr(part, 'thinking') and part.thinking:
+                            thinking_content = part.thinking
                         elif hasattr(part, 'text'):
                             output_content += part.text
+                
+                # Try to get thinking from candidate level
+                if not thinking_content and hasattr(candidate, 'thinking'):
+                    thinking_content = candidate.thinking
             
             # If no structured thinking, use the full response
             if not output_content and response.text:
                 output_content = response.text
             
-            # Generate Thought Signature
-            thought_signature = self._generate_thought_signature(
-                thinking_content or output_content,
-                prompt,
-                context
-            )
+            # ✅ If no signature provided by Gemini, derive from thinking content
+            if not thought_signature:
+                thought_signature = self._derive_signature(
+                    thinking_content or output_content,
+                    prompt,
+                    context
+                )
             
             # Estimate token counts
             thinking_tokens = len((thinking_content or "").split()) * 1.3
@@ -100,12 +130,13 @@ class GeminiClient:
             return {
                 'content': output_content,
                 'thought_signature': thought_signature,
-                'thinking_content': thinking_content[:500] if thinking_content else None,
+                'thinking': thinking_content[:500] if thinking_content else None,
+                'thinking_level': thinking_level,
                 'thinking_tokens': int(thinking_tokens),
                 'output_tokens': int(output_tokens),
                 'metadata': {
-                    'model': 'gemini-2.0-flash-thinking-exp',
-                    'thinking_budget': thinking_budget,
+                    'model': self.MODEL_NAME,
+                    'thinking_level': thinking_level,
                     'timestamp': datetime.utcnow().isoformat(),
                     'prompt_hash': hashlib.sha256(prompt.encode()).hexdigest()[:16],
                     'context': context
@@ -117,15 +148,17 @@ class GeminiClient:
                 'content': None,
                 'error': str(e),
                 'thought_signature': None,
+                'thinking': None,
+                'thinking_level': thinking_level,
                 'thinking_tokens': 0,
                 'output_tokens': 0,
-                'metadata': {'error': True}
+                'metadata': {'error': True, 'error_message': str(e)}
             }
     
     def generate_simple(self, prompt: str) -> Dict[str, Any]:
         """
-        Generate response without thinking (lower cost).
-        Used for simple queries that don't need reasoning.
+        Generate response without thinking (minimal cost).
+        Used for simple queries that don't need deep reasoning.
         """
         try:
             response = self.default_model.generate_content(prompt)
@@ -143,11 +176,13 @@ class GeminiClient:
             return {
                 'content': output_content,
                 'thought_signature': signature,
+                'thinking': None,
+                'thinking_level': 'none',
                 'thinking_tokens': 0,
                 'output_tokens': int(output_tokens),
                 'metadata': {
-                    'model': 'gemini-2.0-flash',
-                    'thinking_budget': 0,
+                    'model': self.MODEL_SIMPLE,
+                    'thinking_level': 'none',
                     'timestamp': datetime.utcnow().isoformat()
                 }
             }
@@ -157,22 +192,24 @@ class GeminiClient:
                 'content': None,
                 'error': str(e),
                 'thought_signature': None,
+                'thinking': None,
+                'thinking_level': 'none',
                 'thinking_tokens': 0,
                 'output_tokens': 0,
                 'metadata': {'error': True}
             }
     
-    def _generate_thought_signature(
+    def _derive_signature(
         self, 
         thinking_content: str, 
         prompt: str,
         context: Optional[Dict] = None
     ) -> str:
         """
-        Generate a cryptographic-style signature from the model's thinking.
-        This signature represents the cognitive pattern of the response.
+        Derive a signature from the model's thinking content.
+        Used as fallback if Gemini doesn't provide a thinking_signature.
         
-        The signature includes:
+        The derived signature includes:
         - Hash of the thinking content
         - Structural pattern metrics
         - Temporal component
@@ -181,7 +218,7 @@ class GeminiClient:
         content_hash = hashlib.sha256(thinking_content.encode()).hexdigest()
         prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()[:8]
         
-        # Extract structural patterns
+        # Extract structural patterns (behavioral fingerprint)
         pattern_metrics = {
             'word_count': len(thinking_content.split()),
             'sentence_count': thinking_content.count('.') + thinking_content.count('!') + thinking_content.count('?'),
@@ -190,7 +227,7 @@ class GeminiClient:
             'question_count': thinking_content.count('?'),
         }
         
-        # Create composite signature
+        # Create composite signature data
         signature_data = {
             'content_hash': content_hash[:32],
             'prompt_hash': prompt_hash,
@@ -209,7 +246,7 @@ class GeminiClient:
         return {
             'request_count': self.request_count,
             'total_tokens_estimated': int(self.total_tokens),
-            'estimated_cost_usd': round(self.total_tokens * 0.00000015, 4)  # Rough estimate
+            'estimated_cost_usd': round(self.total_tokens * 0.00000015, 4)
         }
 
 

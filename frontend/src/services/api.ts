@@ -272,7 +272,7 @@ export interface RouteRequest {
 
 export interface RouteResponse {
     thinking_level: string;
-    token_budget: number;
+    cost_multiplier: number;
     cost_per_1k_tokens: number;
     potential_savings_percent: number;
     reasoning: string[];

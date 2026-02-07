@@ -37,7 +37,10 @@ app = FastAPI(
 )
 
 # CORS configuration - Configure for your domain in production
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:3000,http://localhost:5173,http://localhost:8000,http://51.21.128.226,http://51.21.128.226:3000,http://51.21.128.226:8000"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,6 +66,18 @@ app.include_router(auth_router)
 app.include_router(shield_router)
 app.include_router(finops_router)
 app.include_router(compliance_router)
+
+
+# Health check endpoint for load balancers
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and load balancers."""
+    return {
+        "status": "healthy",
+        "service": "hydro-logic-trust-layer",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 
 # Landing page (public)
@@ -381,8 +396,8 @@ async def landing_page():
             <section class="stats">
                 <div class="container" style="display: contents;">
                     <div class="stat">
-                        <div class="stat-value">770K+</div>
-                        <div class="stat-label">Agents Protected</div>
+                        <div class="stat-value">∞</div>
+                        <div class="stat-label">Agents Ready to Protect</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">45%</div>

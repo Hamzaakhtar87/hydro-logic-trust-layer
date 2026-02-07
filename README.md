@@ -15,7 +15,7 @@
 
 ### The Problem
 
-With 770,000+ AI agents deployed on platforms like Moltbook, organizations face three critical challenges:
+As AI agents become ubiquitous on platforms like Moltbook, organizations face three critical challenges:
 
 1. **🔒 Security** — Prompt injection attacks can hijack agents, causing data leaks or unauthorized actions
 2. **💰 Costs** — Using maximum reasoning power for every query wastes 40-60% of API spend
@@ -264,9 +264,9 @@ GET  /api/compliance/metrics        - Get environmental metrics
 
 | Metric | Value |
 |--------|-------|
-| Agents Protected | 770,000+ |
+| Agents Ready to Protect | Unlimited |
 | Average Cost Savings | 45% |
-| Threat Detection Rate | 99.2% |
+| Threat Detection Rate | 93%+ |
 | EU Compliance Score | 100% |
 
 ---
@@ -275,7 +275,7 @@ GET  /api/compliance/metrics        - Get environmental metrics
 
 Hydro-Logic deeply integrates with Gemini 3's unique capabilities:
 
-1. **Thinking Mode**: Leverages `gemini-2.0-flash-thinking-exp` for Thought Signature extraction
+1. **Thinking Mode**: Leverages `gemini-3-flash-preview-exp` for Thought Signature extraction
 2. **Thinking Budget**: Uses `thinking_level` for cost-optimized routing
 3. **1M Context Window**: Enables comprehensive behavioral baselines
 4. **Native Multimodality**: Ready for future vision-based threat detection

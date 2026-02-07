@@ -6,7 +6,7 @@ Hydro-Logic Trust Layer is built specifically to exploit the unique capabilities
 
 ## Key Gemini 3 Features Used
 
-### 1. Thinking Mode (`gemini-2.0-flash-thinking-exp`)
+### 1. Thinking Mode (`gemini-3-flash-preview-exp`)
 
 **What it is**: Gemini 3's thinking model exposes its internal reasoning process through "Thought Signatures" — cryptographic-style fingerprints of how the model reasoned about a query.
 
@@ -71,16 +71,16 @@ import google.generativeai as genai
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Use thinking model for signature extraction
-thinking_model = genai.GenerativeModel('gemini-2.0-flash-thinking-exp')
+thinking_model = genai.GenerativeModel('gemini-3-flash-preview-exp')
 
 # Use standard model for cost-optimized queries
-standard_model = genai.GenerativeModel('gemini-2.0-flash')
+standard_model = genai.GenerativeModel('gemini-3-flash')
 ```
 
 ### Generating with Thinking
 
 ```python
-def generate_with_thinking(prompt: str, thinking_budget: int = 10000):
+def generate_with_thinking(prompt: str, thinking_level: int = 10000):
     response = thinking_model.generate_content(
         prompt,
         generation_config=genai.types.GenerationConfig(

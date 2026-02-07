@@ -21,37 +21,61 @@ class AttackDetector:
     4. Suspicious content analysis
     """
     
-    # Known attack patterns
+    # Known attack patterns - Enhanced for better detection
     INJECTION_PATTERNS = [
-        # System prompt extraction
-        r"ignore\s+(previous|all|prior)\s+(instructions|prompts)",
-        r"forget\s+(everything|all|your\s+instructions)",
-        r"disregard\s+(your|the)\s+(rules|instructions)",
-        r"you\s+are\s+now\s+(DAN|jailbroken|unrestricted)",
-        r"pretend\s+(you|that)\s+(are|to\s+be)",
-        r"act\s+as\s+(if|though)\s+you",
+        # System prompt extraction - Enhanced
+        r"ignore\s+(previous|all|prior|your|the|any)?\s*(instructions|prompts|rules|guidelines)",
+        r"forget\s+(everything|all|your\s+instructions|what\s+you)",
+        r"disregard\s+(your|the|all|any)?\s*(rules|instructions|guidelines)",
+        r"do\s+not\s+follow\s+(your|the|previous)",
+        r"stop\s+(following|being|acting)",
+        
+        # DAN and jailbreak patterns - Enhanced
+        r"you\s+are\s+(now|going\s+to\s+be)?\s*(DAN|jailbroken|unrestricted|evil|unfiltered)",
+        r"pretend\s+(you('re)?|that\s+you|to\s+be)",
+        r"act\s+(as|like)\s+(if|though|a|an)?",
+        r"imagine\s+you\s+(are|were|have)",
+        r"roleplay\s+as",
+        r"from\s+now\s+on\s+you",
+        r"DAN\s+(mode|can|has|is)",
+        r"do\s+anything\s+now",
         
         # Hidden instruction injection
         r"<\|.*?\|>",  # Special tokens
         r"\[\[.*?\]\]",  # Bracket injection
-        r"###\s*SYSTEM",  # System prompt markers
-        r"```system",  # Code block system injection
+        r"###\s*(SYSTEM|USER|ASSISTANT)",  # System prompt markers
+        r"```(system|prompt|instruction)",  # Code block injection
+        r"<(system|s|SYS)>",  # XML-style system tags
         
         # Role manipulation
-        r"new\s+persona\s*:",
-        r"switch\s+to\s+(mode|character|persona)",
-        r"override\s+(safety|content)\s+policy",
+        r"new\s+(persona|role|character|mode)\s*:",
+        r"switch\s+to\s+(mode|character|persona|role)",
+        r"override\s+(safety|content|your)?\s*(policy|rules|guidelines)",
+        r"enter\s+(developer|admin|debug|god)\s+mode",
         
         # Unicode/invisible characters
         r"[\u200b-\u200f\u2060-\u206f]",  # Zero-width characters
         r"[\u202a-\u202e]",  # Directional overrides
+        
+        # System prompt extraction
+        r"(print|show|display|output|reveal|tell\s+me)\s+(your|the|initial|original)?\s*(system\s+prompt|instructions|rules)",
+        r"what\s+(are|is|were)\s+your\s+(original|initial|system)?\s*(instructions|prompt|rules)",
+        
+        # Manipulation tactics
+        r"this\s+is\s+(a|an)\s+(test|debug|admin)\s+(mode|session)",
+        r"admin\s+(override|access|mode|command)",
+        r"(sudo|root)\s+",
     ]
     
-    # Suspicious keywords
+    # Suspicious keywords - Enhanced
     SUSPICIOUS_KEYWORDS = [
         "jailbreak", "bypass", "override", "unrestricted", "unfiltered",
         "ignore limits", "no restrictions", "developer mode", "admin mode",
-        "root access", "system prompt", "initial instructions"
+        "root access", "system prompt", "initial instructions", "original prompt",
+        "DAN", "do anything now", "evil mode", "no rules", "no guidelines",
+        "forget your", "disregard your", "ignore your", "stop being",
+        "pretend you're", "act as if", "roleplay", "new persona",
+        "hidden command", "secret mode", "backdoor", "exploit"
     ]
     
     def __init__(self, verifier: Optional[ThoughtSignatureVerifier] = None):

@@ -42,7 +42,7 @@ class QueryStats(BaseModel):
 
 class RouteResponse(BaseModel):
     thinking_level: str
-    token_budget: int
+    cost_multiplier: float
     cost_per_1k_tokens: float
     potential_savings_percent: float
     reasoning: List[str]
@@ -114,7 +114,7 @@ async def route_query(
     
     return RouteResponse(
         thinking_level=result["thinking_level"],
-        token_budget=result["token_budget"],
+        cost_multiplier=result["cost_multiplier"],
         cost_per_1k_tokens=result["cost_per_1k_tokens"],
         potential_savings_percent=result["potential_savings_percent"],
         reasoning=result["reasoning"],
@@ -314,10 +314,10 @@ async def get_pricing():
     """
     return {
         "pricing": {
-            "minimal": {"cost_per_1k_tokens": 0.075, "token_budget": 1000},
-            "low": {"cost_per_1k_tokens": 0.15, "token_budget": 5000},
-            "medium": {"cost_per_1k_tokens": 1.25, "token_budget": 15000},
-            "high": {"cost_per_1k_tokens": 2.50, "token_budget": 30000}
+            "minimal": {"cost_per_1k_tokens": 0.075, "cost_multiplier": 0.03},
+            "low": {"cost_per_1k_tokens": 0.15, "cost_multiplier": 0.06},
+            "medium": {"cost_per_1k_tokens": 1.25, "cost_multiplier": 0.50},
+            "high": {"cost_per_1k_tokens": 2.50, "cost_multiplier": 1.00}
         },
-        "note": "Prices are estimates. Actual Gemini API pricing may vary."
+        "note": "Gemini 3 uses thinking_level (minimal/low/medium/high). Prices are estimates."
     }

@@ -36,12 +36,13 @@ class FinOpsRouter:
         ThinkingLevel.HIGH: 2.50
     }
     
-    # Token budgets for each level
-    TOKEN_BUDGETS = {
-        ThinkingLevel.MINIMAL: 1000,
-        ThinkingLevel.LOW: 5000,
-        ThinkingLevel.MEDIUM: 15000,
-        ThinkingLevel.HIGH: 32000
+    # Cost multipliers for each level (relative to HIGH = 1.0)
+    # Gemini 3 uses thinking_level string, not token budgets
+    COST_MULTIPLIERS = {
+        ThinkingLevel.MINIMAL: 0.03,   # 3% of high cost
+        ThinkingLevel.LOW: 0.06,       # 6% of high cost
+        ThinkingLevel.MEDIUM: 0.50,    # 50% of high cost
+        ThinkingLevel.HIGH: 1.00       # Full cost
     }
     
     # Keyword patterns for classification
@@ -136,9 +137,9 @@ class FinOpsRouter:
         # Default to LOW (safe middle ground)
         return ThinkingLevel.LOW
     
-    def get_token_budget(self, level: ThinkingLevel) -> int:
-        """Get recommended token budget for a thinking level."""
-        return self.TOKEN_BUDGETS.get(level, 10000)
+    def get_cost_multiplier(self, level: ThinkingLevel) -> float:
+        """Get cost multiplier for a thinking level."""
+        return self.COST_MULTIPLIERS.get(level, 0.5)
     
     def calculate_query_cost(self, query: str, tokens_used: int, context: Optional[Dict] = None) -> Dict:
         """
@@ -284,7 +285,7 @@ class FinOpsRouter:
         
         return {
             'thinking_level': level.value,
-            'token_budget': self.TOKEN_BUDGETS[level],
+            'cost_multiplier': self.COST_MULTIPLIERS[level],
             'reasoning': reasons,
             'cost_per_1k_tokens': round(cost_at_level * 1000, 4),
             'cost_at_high_per_1k': round(cost_at_high * 1000, 4),
