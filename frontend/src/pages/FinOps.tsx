@@ -284,9 +284,9 @@ export const FinOpsPage: React.FC = () => {
                                 </p>
                             </div>
                             <div>
-                                <p className="text-slate-400 text-sm">Token Budget</p>
+                                <p className="text-slate-400 text-sm">Cost Multiplier</p>
                                 <p className="text-xl font-bold text-white">
-                                    {routeResult.token_budget.toLocaleString()}
+                                    {(routeResult.cost_multiplier * 100).toFixed(0)}%
                                 </p>
                             </div>
                             <div>
