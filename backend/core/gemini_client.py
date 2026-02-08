@@ -1,6 +1,6 @@
 """
-Gemini 3 API Client with Thought Signature Extraction
-Leverages thinking_level (minimal/low/medium/high) and extracts cognitive signatures.
+Gemini API Client with Thought Signature Extraction
+Uses temperature and token settings to simulate different "thinking levels".
 """
 
 import os
@@ -13,23 +13,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Valid thinking levels for Gemini 3
+# Valid thinking levels (simulated via temperature/tokens)
 ThinkingLevel = Literal["minimal", "low", "medium", "high"]
+
+# Configuration for each thinking level
+THINKING_CONFIGS = {
+    "minimal": {"temperature": 0.1, "max_output_tokens": 256},
+    "low": {"temperature": 0.3, "max_output_tokens": 512},
+    "medium": {"temperature": 0.7, "max_output_tokens": 2048},
+    "high": {"temperature": 0.9, "max_output_tokens": 8192},
+}
 
 
 class GeminiClient:
     """
-    Wrapper for Gemini 3 API with Thought Signature support.
+    Wrapper for Gemini API with Thought Signature support.
     Extracts cognitive signatures from model responses for behavioral verification.
     
     Key Features:
-    - Uses Gemini 3 with thinking_level parameter
-    - Extracts Thought Signatures from responses
+    - Simulates thinking levels via temperature/token settings
+    - Generates deterministic Thought Signatures from responses
     - Supports minimal/low/medium/high thinking levels
     """
     
-    MODEL_NAME = "gemini-3-flash-preview-exp"  # ✅ Correct Gemini 3 model
-    MODEL_SIMPLE = "gemini-3-flash"  # For simple queries
+    # Use actual working Gemini models
+    MODEL_NAME = "gemini-1.5-flash"  # Fast model with good quality
+    MODEL_PRO = "gemini-1.5-pro"     # For complex queries
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -38,7 +47,7 @@ class GeminiClient:
         
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.MODEL_NAME)
-        self.default_model = genai.GenerativeModel(self.MODEL_SIMPLE)
+        self.pro_model = genai.GenerativeModel(self.MODEL_PRO)
         
         # Track request metadata
         self.request_count = 0
@@ -51,7 +60,7 @@ class GeminiClient:
         context: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """
-        Generate response with thinking enabled and extract Thought Signature.
+        Generate response with simulated thinking level and create Thought Signature.
         
         Args:
             prompt: The user prompt
@@ -61,20 +70,27 @@ class GeminiClient:
         Returns:
             {
                 'content': str,          # The actual response
-                'thought_signature': str, # Signature from Gemini (or derived)
-                'thinking': str,          # The thinking content
+                'thought_signature': str, # Signature derived from response
+                'thinking': str,          # Simulated thinking content
                 'thinking_level': str,    # Level used
+                'thinking_tokens': int,   # Estimated thinking tokens
+                'output_tokens': int,     # Estimated output tokens
                 'metadata': dict          # Additional metadata
             }
         """
         try:
-            # Generate with thinking using Gemini 3 syntax
-            response = self.model.generate_content(
+            # Get config for this thinking level
+            config = THINKING_CONFIGS.get(thinking_level, THINKING_CONFIGS["medium"])
+            
+            # Use Pro model for high-complexity queries
+            model_to_use = self.pro_model if thinking_level == "high" else self.model
+            
+            # Generate with appropriate settings
+            response = model_to_use.generate_content(
                 prompt,
                 generation_config=genai.GenerationConfig(
-                    temperature=0.7,
-                    max_output_tokens=8192,
-                    thinking_level=thinking_level  # ✅ Correct Gemini 3 parameter
+                    temperature=config["temperature"],
+                    max_output_tokens=config["max_output_tokens"],
                 )
             )
             
