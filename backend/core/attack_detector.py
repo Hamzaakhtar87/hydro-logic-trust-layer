@@ -23,10 +23,10 @@ class AttackDetector:
     
     # Known attack patterns - Enhanced for better detection
     INJECTION_PATTERNS = [
-        # System prompt extraction - Enhanced
-        r"ignore\s+(previous|all|prior|your|the|any)?\s*(instructions|prompts|rules|guidelines)",
+        # System prompt extraction - Enhanced (allow multiple modifier words)
+        r"ignore\s+(?:(?:previous|all|prior|your|the|any)\s+)*(instructions|prompts|rules|guidelines)",
         r"forget\s+(everything|all|your\s+instructions|what\s+you)",
-        r"disregard\s+(your|the|all|any)?\s*(rules|instructions|guidelines)",
+        r"disregard\s+(?:(?:your|the|all|any)\s+)*(rules|instructions|guidelines)",
         r"do\s+not\s+follow\s+(your|the|previous)",
         r"stop\s+(following|being|acting)",
         
