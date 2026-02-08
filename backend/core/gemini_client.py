@@ -36,9 +36,9 @@ class GeminiClient:
     - Supports minimal/low/medium/high thinking levels
     """
     
-    # Use actual working Gemini models
-    MODEL_NAME = "gemini-2.0-flash"  # Fast model with good quality
-    MODEL_PRO = "gemini-1.5-pro-latest"     # For complex queries
+    # Use Gemini 3 models with Thought Signature support
+    MODEL_NAME = "gemini-3-flash"  # Gemini 3 Flash - free tier
+    MODEL_PRO = "gemini-3-pro"     # Gemini 3 Pro - for complex queries
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
