@@ -100,20 +100,20 @@ class GeminiClient:
             thinking_content = ""
             output_content = ""
             thought_signature = None
+            gemini_native_signature = False  # Track if we got native signature
             
             if response.candidates:
                 candidate = response.candidates[0]
                 
-                # ✅ Extract Thought Signature from Gemini response (if provided)
-                # Gemini 3 provides this automatically
-                if hasattr(candidate, 'thinking_signature'):
-                    thought_signature = candidate.thinking_signature
-                elif hasattr(candidate, 'thought_signature'):
-                    thought_signature = candidate.thought_signature
-                
-                # Extract thinking and content
+                # Extract thinking and content from parts
                 if hasattr(candidate, 'content') and candidate.content.parts:
                     for part in candidate.content.parts:
+                        # ✅ IMPORTANT: Extract Gemini 3's native thought_signature from parts
+                        # This is the cryptographic proof from Google!
+                        if hasattr(part, 'thought_signature') and part.thought_signature:
+                            thought_signature = part.thought_signature
+                            gemini_native_signature = True
+                        
                         # Check for thinking content
                         if hasattr(part, 'thought') and part.thought:
                             thinking_content = part.text if hasattr(part, 'text') else ""
@@ -121,6 +121,15 @@ class GeminiClient:
                             thinking_content = part.thinking
                         elif hasattr(part, 'text'):
                             output_content += part.text
+                
+                # Also check candidate-level signature (older SDK versions)
+                if not thought_signature:
+                    if hasattr(candidate, 'thinking_signature'):
+                        thought_signature = candidate.thinking_signature
+                        gemini_native_signature = True
+                    elif hasattr(candidate, 'thought_signature'):
+                        thought_signature = candidate.thought_signature
+                        gemini_native_signature = True
                 
                 # Try to get thinking from candidate level
                 if not thinking_content and hasattr(candidate, 'thinking'):
@@ -130,13 +139,14 @@ class GeminiClient:
             if not output_content and response.text:
                 output_content = response.text
             
-            # ✅ If no signature provided by Gemini, derive from thinking content
+            # If no native signature from Gemini, derive our own (fallback)
             if not thought_signature:
                 thought_signature = self._derive_signature(
                     thinking_content or output_content,
                     prompt,
                     context
                 )
+                gemini_native_signature = False
             
             # Estimate token counts
             thinking_tokens = len((thinking_content or "").split()) * 1.3
@@ -146,6 +156,7 @@ class GeminiClient:
             return {
                 'content': output_content,
                 'thought_signature': thought_signature,
+                'native_signature': gemini_native_signature,  # True if from Gemini, False if derived
                 'thinking': thinking_content[:500] if thinking_content else None,
                 'thinking_level': thinking_level,
                 'thinking_tokens': int(thinking_tokens),
@@ -155,7 +166,8 @@ class GeminiClient:
                     'thinking_level': thinking_level,
                     'timestamp': datetime.utcnow().isoformat(),
                     'prompt_hash': hashlib.sha256(prompt.encode()).hexdigest()[:16],
-                    'context': context
+                    'context': context,
+                    'signature_source': 'gemini_native' if gemini_native_signature else 'derived'
                 }
             }
             
