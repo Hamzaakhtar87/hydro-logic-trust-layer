@@ -464,6 +464,7 @@ async def analyze_with_gemini(
             action=ActionType.BLOCK
         )
         db.add(interaction)
+        db.flush()  # Flush to get interaction.id before creating threats
         
         # Create threat records
         for threat in input_threats:
