@@ -252,6 +252,50 @@ export const shieldAPI = {
             body: JSON.stringify(data),
         }),
 
+    // NEW: Real Gemini integration - analyze message with actual AI
+    analyze: (data: {
+        agent_id: string;
+        message: string;
+        thinking_level?: string;
+        system_prompt?: string;
+    }) =>
+        apiRequest<{
+            is_safe: boolean;
+            threats_detected: ThreatInfo[];
+            confidence: number;
+            action: string;
+            analysis_id: string;
+            analyzed_at: string;
+            gemini_response: string;
+            thought_signature: string;
+            thinking_level: string;
+            thinking_tokens: number;
+            output_tokens: number;
+        }>('/api/shield/analyze', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // NEW: Demo attack detection without needing Gemini API
+    demoAttack: () =>
+        apiRequest<{
+            demo_results: Array<{
+                name: string;
+                message: string;
+                expected_action: string;
+                actual_action: string;
+                is_safe: boolean;
+                threats_detected: number;
+                confidence: number;
+                passed: boolean;
+            }>;
+            total_tests: number;
+            passed: number;
+            detection_rate: string;
+        }>('/api/shield/demo-attack', {
+            method: 'POST',
+        }),
+
     getStats: () =>
         apiRequest<ShieldStats>('/api/shield/stats'),
 
@@ -336,6 +380,55 @@ export const finopsAPI = {
         apiRequest<RouteResponse>('/api/finops/route', {
             method: 'POST',
             body: JSON.stringify(data),
+        }),
+
+    // NEW: Real Gemini integration - route + generate in one call
+    generate: (data: {
+        query: string;
+        context?: Record<string, unknown>;
+        force_level?: string;
+    }) =>
+        apiRequest<{
+            content: string;
+            thinking_level: string;
+            recommended_level: string;
+            tokens_used: number;
+            optimized_cost: number;
+            naive_cost: number;
+            savings: number;
+            savings_percent: number;
+            thought_signature: string;
+            thinking_tokens: number;
+            output_tokens: number;
+            reasoning: string[];
+        }>('/api/finops/generate', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // NEW: Demo cost savings without needing Gemini API
+    demoSavings: () =>
+        apiRequest<{
+            demo_results: Array<{
+                query: string;
+                expected_level: string;
+                actual_level: string;
+                matched: boolean;
+                reasoning: string[];
+                optimized_cost: string;
+                naive_cost: string;
+                savings_percent: string;
+            }>;
+            summary: {
+                total_queries: number;
+                correct_routing: number;
+                total_optimized_cost: string;
+                total_naive_cost: string;
+                total_savings: string;
+                savings_percent: string;
+            };
+        }>('/api/finops/demo-savings', {
+            method: 'POST',
         }),
 
     recordUsage: (data: RecordUsageRequest) =>

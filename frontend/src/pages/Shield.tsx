@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { shieldAPI, ShieldStats, ThreatRecord, AgentInfo, VerifyResponse } from '../services/api';
+import { shieldAPI, ShieldStats, ThreatRecord, AgentInfo, ThreatInfo } from '../services/api';
 import { Shield, AlertTriangle, RefreshCw, Loader2, CheckCircle, XCircle, Send, Zap } from 'lucide-react';
+
+// Extended result type for real Gemini integration
+interface AnalyzeResult {
+    is_safe: boolean;
+    threats_detected: ThreatInfo[];
+    confidence: number;
+    action: string;
+    analysis_id: string;
+    analyzed_at: string;
+    gemini_response?: string;
+    thought_signature?: string;
+    thinking_level?: string;
+    thinking_tokens?: number;
+    output_tokens?: number;
+}
 
 export const ShieldPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -14,7 +29,11 @@ export const ShieldPage: React.FC = () => {
     const [testMessage, setTestMessage] = useState('');
     const [testResponse, setTestResponse] = useState('');
     const [verifying, setVerifying] = useState(false);
-    const [verifyResult, setVerifyResult] = useState<VerifyResponse | null>(null);
+    const [verifyResult, setVerifyResult] = useState<AnalyzeResult | null>(null);
+
+    // NEW: Toggle between simulated and real Gemini
+    const [useRealGemini, setUseRealGemini] = useState(true);
+    const [thinkingLevel, setThinkingLevel] = useState('medium');
 
     const loadData = async () => {
         setLoading(true);
@@ -50,14 +69,29 @@ export const ShieldPage: React.FC = () => {
         setError('');
 
         try {
-            const result = await shieldAPI.verify({
-                agent_id: testAgentId,
-                message: testMessage,
-                gemini_response: {
-                    content: testResponse || 'Sample response from Gemini',
-                    thought_signature: `sig_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                },
-            });
+            let result: AnalyzeResult;
+
+            if (useRealGemini) {
+                // 🚀 REAL GEMINI INTEGRATION
+                result = await shieldAPI.analyze({
+                    agent_id: testAgentId,
+                    message: testMessage,
+                    thinking_level: thinkingLevel,
+                    system_prompt: testResponse || undefined,
+                });
+            } else {
+                // Legacy simulated mode (for demo without API key)
+                const legacyResult = await shieldAPI.verify({
+                    agent_id: testAgentId,
+                    message: testMessage,
+                    gemini_response: {
+                        content: testResponse || 'Simulated response (no real Gemini call)',
+                        thought_signature: `sig_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    },
+                });
+                result = { ...legacyResult, gemini_response: testResponse || 'Simulated' };
+            }
+
             setVerifyResult(result);
             // Refresh stats after verification
             loadData();
@@ -188,8 +222,8 @@ export const ShieldPage: React.FC = () => {
                 {/* Verification Result */}
                 {verifyResult && (
                     <div className={`mt-6 p-4 rounded-lg border ${verifyResult.is_safe
-                            ? 'bg-green-500/10 border-green-500/50'
-                            : 'bg-red-500/10 border-red-500/50'
+                        ? 'bg-green-500/10 border-green-500/50'
+                        : 'bg-red-500/10 border-red-500/50'
                         }`}>
                         <div className="flex items-center gap-3 mb-3">
                             {verifyResult.is_safe ? (
@@ -212,9 +246,9 @@ export const ShieldPage: React.FC = () => {
                                 {verifyResult.threats_detected.map((threat, idx) => (
                                     <div key={idx} className="bg-slate-800/50 rounded p-3">
                                         <span className={`text-xs px-2 py-1 rounded mr-2 ${threat.severity === 'critical' ? 'bg-red-500/30 text-red-300' :
-                                                threat.severity === 'high' ? 'bg-orange-500/30 text-orange-300' :
-                                                    threat.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-300' :
-                                                        'bg-blue-500/30 text-blue-300'
+                                            threat.severity === 'high' ? 'bg-orange-500/30 text-orange-300' :
+                                                threat.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-300' :
+                                                    'bg-blue-500/30 text-blue-300'
                                             }`}>
                                             {threat.severity.toUpperCase()}
                                         </span>
@@ -302,9 +336,9 @@ export const ShieldPage: React.FC = () => {
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className={`text-xs px-2 py-1 rounded ${threat.severity === 'critical' ? 'bg-red-500/30 text-red-300' :
-                                                threat.severity === 'high' ? 'bg-orange-500/30 text-orange-300' :
-                                                    threat.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-300' :
-                                                        'bg-blue-500/30 text-blue-300'
+                                            threat.severity === 'high' ? 'bg-orange-500/30 text-orange-300' :
+                                                threat.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-300' :
+                                                    'bg-blue-500/30 text-blue-300'
                                             }`}>
                                             {threat.severity.toUpperCase()}
                                         </span>

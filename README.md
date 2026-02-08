@@ -145,8 +145,9 @@ Then visit:
 ### API Endpoints
 
 ```
-POST /api/shield/verify       - Verify an agent interaction
-GET  /api/shield/threats      - List detected threats
+POST /api/shield/verify       - Verify agent interaction (simulated)
+POST /api/shield/analyze      - 🚀 Real Gemini analysis with threat detection
+POST /api/shield/demo-attack  - 🎯 Demo attack detection (no API key needed)
 GET  /api/shield/stats        - Get protection statistics
 WS   /api/shield/ws/threats   - Real-time threat stream
 ```
@@ -180,10 +181,10 @@ Not every query needs maximum reasoning power:
 - **Zero quality impact** — complex queries still get full reasoning
 - **Real-time analytics** — track savings over time
 
-### API Endpoints
-
 ```
 POST /api/finops/route        - Get optimal level for a query
+POST /api/finops/generate     - 🚀 Route + call Gemini in one step
+POST /api/finops/demo-savings - 🎯 Demo cost savings (no API key needed)
 GET  /api/finops/savings      - Get savings statistics
 GET  /api/finops/breakdown    - Cost breakdown by level
 GET  /api/finops/history      - Historical cost data
