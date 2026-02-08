@@ -191,13 +191,52 @@ export const ShieldPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-slate-400 mb-2">Agent Response (optional)</label>
+                        <label className="block text-sm text-slate-400 mb-2">System Prompt (optional)</label>
                         <textarea
                             value={testResponse}
                             onChange={(e) => setTestResponse(e.target.value)}
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 h-24"
-                            placeholder="The agent's response to analyze..."
+                            placeholder="Optional system prompt for the AI agent..."
                         />
+                    </div>
+
+                    {/* Gemini Integration Controls */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                        <div className="flex items-center gap-3">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={useRealGemini}
+                                    onChange={(e) => setUseRealGemini(e.target.checked)}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                            <div>
+                                <span className="text-white text-sm font-medium">
+                                    {useRealGemini ? '🚀 Real Gemini API' : '🧪 Simulated Mode'}
+                                </span>
+                                <p className="text-xs text-slate-400">
+                                    {useRealGemini ? 'Calls actual Gemini API' : 'No API call, for testing UI'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {useRealGemini && (
+                            <div>
+                                <label className="block text-sm text-slate-400 mb-2">Thinking Level</label>
+                                <select
+                                    value={thinkingLevel}
+                                    onChange={(e) => setThinkingLevel(e.target.value)}
+                                    className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="minimal">Minimal (fastest, cheapest)</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium (balanced)</option>
+                                    <option value="high">High (deepest reasoning)</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     <button
