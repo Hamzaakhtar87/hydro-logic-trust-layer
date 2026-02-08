@@ -37,8 +37,8 @@ class GeminiClient:
     """
     
     # Use actual working Gemini models
-    MODEL_NAME = "gemini-1.5-flash"  # Fast model with good quality
-    MODEL_PRO = "gemini-1.5-pro"     # For complex queries
+    MODEL_NAME = "gemini-2.0-flash"  # Fast model with good quality
+    MODEL_PRO = "gemini-1.5-pro-latest"     # For complex queries
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
