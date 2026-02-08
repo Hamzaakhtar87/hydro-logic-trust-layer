@@ -297,6 +297,47 @@ export const ShieldPage: React.FC = () => {
                                 ))}
                             </div>
                         )}
+
+                        {/* 🔐 Thought Signature Display */}
+                        {verifyResult.thought_signature && (
+                            <div className="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-lg">🔐</span>
+                                    <h3 className="text-white font-semibold">Thought Signature</h3>
+                                    <span className="text-xs px-2 py-1 rounded bg-indigo-500/30 text-indigo-300">
+                                        Gemini 3
+                                    </span>
+                                </div>
+                                <div className="bg-slate-800/70 p-3 rounded font-mono text-sm break-all">
+                                    <span className="text-green-400">{verifyResult.thought_signature}</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    This cryptographic signature proves the AI response is authentic and unmodified.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 🤖 Gemini Response Display */}
+                        {verifyResult.gemini_response && (
+                            <div className="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-lg">🤖</span>
+                                    <h3 className="text-white font-semibold">AI Response</h3>
+                                    {verifyResult.thinking_level && (
+                                        <span className="text-xs px-2 py-1 rounded bg-purple-500/30 text-purple-300">
+                                            Thinking: {verifyResult.thinking_level}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-slate-200">{verifyResult.gemini_response}</p>
+                                {verifyResult.thinking_tokens !== undefined && (
+                                    <div className="flex gap-4 mt-2 text-xs text-slate-400">
+                                        <span>Thinking tokens: {verifyResult.thinking_tokens}</span>
+                                        <span>Output tokens: {verifyResult.output_tokens}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
