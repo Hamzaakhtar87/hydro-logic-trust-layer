@@ -37,8 +37,8 @@ class GeminiClient:
     """
     
     # Use Gemini 3 models with Thought Signature support
-    MODEL_NAME = "gemini-3-flash"  # Gemini 3 Flash - free tier
-    MODEL_PRO = "gemini-3-pro"     # Gemini 3 Pro - for complex queries
+    MODEL_NAME = "gemini-3-flash-preview"  # Gemini 3 Flash - free tier
+    MODEL_PRO = "gemini-3-pro-preview"     # Gemini 3 Pro - for complex queries
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
