@@ -508,6 +508,7 @@ async def analyze_with_gemini(
             analyzed_at=datetime.utcnow().isoformat(),
             gemini_response="[BLOCKED - Request contained malicious content]",
             thought_signature="blocked",
+            signature_source="blocked",
             thinking_level=request.thinking_level,
             thinking_tokens=0,
             output_tokens=0
