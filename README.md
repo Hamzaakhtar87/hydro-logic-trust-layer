@@ -251,7 +251,7 @@ GET  /api/compliance/metrics        - Get environmental metrics
 
 ## 🎥 Demo
 
-[Watch Demo Video](https://youtube.com/your-demo-video)
+[Watch Demo Video](https://youtu.be/QpZw7nof0dU)
 
 ### Demo Highlights
 
@@ -287,9 +287,9 @@ Hydro-Logic deeply integrates with Gemini 3's unique capabilities:
 
 | Name | Role | GitHub |
 |------|------|--------|
-| [Team Member 1] | Full Stack | [@handle] |
-| [Team Member 2] | AI/ML | [@handle] |
-| [Team Member 3] | Product | [@handle] |
+| [Muhammad Hamza] | Full Stack | [@Hamzaakhtar87] |
+| [Hilal Khan] | AI/ML | [@hilalkhan1] |
+| [Waqas Ahmad] | Product | [@waqasahmad] |
 
 ---
 
