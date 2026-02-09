@@ -90,6 +90,7 @@ class AnalyzeResponse(BaseModel):
     # Real Gemini response data
     gemini_response: str
     thought_signature: str
+    signature_source: str  # 'gemini_native' or 'derived' - tells if signature came from Gemini
     thinking_level: str
     thinking_tokens: int
     output_tokens: int
@@ -619,6 +620,7 @@ async def analyze_with_gemini(
         analyzed_at=datetime.utcnow().isoformat(),
         gemini_response=gemini_result.get('content', ''),
         thought_signature=gemini_result.get('thought_signature', ''),
+        signature_source=gemini_result.get('metadata', {}).get('signature_source', 'derived'),
         thinking_level=gemini_result.get('thinking_level', request.thinking_level),
         thinking_tokens=gemini_result.get('thinking_tokens', 0),
         output_tokens=gemini_result.get('output_tokens', 0)

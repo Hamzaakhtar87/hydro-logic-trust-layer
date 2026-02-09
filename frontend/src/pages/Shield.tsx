@@ -304,15 +304,23 @@ export const ShieldPage: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-lg">🔐</span>
                                     <h3 className="text-white font-semibold">Thought Signature</h3>
-                                    <span className="text-xs px-2 py-1 rounded bg-indigo-500/30 text-indigo-300">
-                                        Gemini 3
-                                    </span>
+                                    {verifyResult.signature_source === 'gemini_native' ? (
+                                        <span className="text-xs px-2 py-1 rounded bg-green-500/30 text-green-300">
+                                            ✓ Gemini Native
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs px-2 py-1 rounded bg-yellow-500/30 text-yellow-300">
+                                            Derived
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="bg-slate-800/70 p-3 rounded font-mono text-sm break-all">
                                     <span className="text-green-400">{verifyResult.thought_signature}</span>
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2">
-                                    This cryptographic signature proves the AI response is authentic and unmodified.
+                                    {verifyResult.signature_source === 'gemini_native'
+                                        ? "✓ This signature came directly from Google's Gemini API - cryptographic proof of authenticity."
+                                        : "This signature was derived by Hydro-Logic from the response content."}
                                 </p>
                             </div>
                         )}
