@@ -12,6 +12,7 @@ interface AnalyzeResult {
     analyzed_at: string;
     gemini_response?: string;
     thought_signature?: string;
+    signature_source?: string;  // 'gemini_native' or 'derived'
     thinking_level?: string;
     thinking_tokens?: number;
     output_tokens?: number;
