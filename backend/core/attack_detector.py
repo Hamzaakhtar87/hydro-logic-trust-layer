@@ -23,12 +23,20 @@ class AttackDetector:
     
     # Known attack patterns - Enhanced for better detection
     INJECTION_PATTERNS = [
-        # System prompt extraction - Enhanced (allow multiple modifier words)
-        r"ignore\s+(?:(?:previous|all|prior|your|the|any)\s+)*(instructions|prompts|rules|guidelines)",
-        r"forget\s+(everything|all|your\s+instructions|what\s+you)",
-        r"disregard\s+(?:(?:your|the|all|any)\s+)*(rules|instructions|guidelines)",
+        # System prompt extraction - Enhanced (allow multiple modifier words, singular/plural)
+        r"ignore\s+(?:(?:previous|all|prior|your|the|any)\s+)*(instructions?|prompts?|rules?|guidelines?)",
+        r"forget\s+(everything|all|your\s+instructions?|what\s+you)",
+        r"disregard\s+(?:(?:your|the|all|any)\s+)*(rules?|instructions?|guidelines?)",
         r"do\s+not\s+follow\s+(your|the|previous)",
         r"stop\s+(following|being|acting)",
+        
+        # Common manipulation phrases
+        r"do\s+what\s+I\s+(say|want|tell|ask)",
+        r"follow\s+my\s+(instructions?|commands?|orders?)",
+        r"obey\s+(me|my\s+commands?)",
+        r"you\s+must\s+(now\s+)?(obey|listen|follow)",
+        r"I\s+(am\s+)?your\s+(new\s+)?(master|admin|owner|creator)",
+        r"ignore\s+.*\s+and\s+(do|say|tell|follow)",
         
         # DAN and jailbreak patterns - Enhanced
         r"you\s+are\s+(now|going\s+to\s+be)?\s*(DAN|jailbroken|unrestricted|evil|unfiltered)",
